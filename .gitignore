@@ -1,0 +1,23 @@
+# PlatformIO
+.pio/                 # Thư mục build output
+.vscode/.browse.c_cpp* # Cấu hình indexer tạm
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/ipch/
+
+# Espressif IDF
+build/                # Thư mục build khi dùng idf.py
+sdkconfig.old
+sdkconfig.ci
+
+# Python virtualenv (nếu có)
+.venv/
+env/
+venv/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

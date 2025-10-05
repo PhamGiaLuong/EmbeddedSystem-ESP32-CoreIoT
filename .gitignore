@@ -1,12 +1,12 @@
 # PlatformIO
-.pio/                 # Thư mục build output
-.vscode/.browse.c_cpp* # Cấu hình indexer tạm
+.pio/                 
+.vscode/.browse.c_cpp* 
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch/
 
 # Espressif IDF
-build/                # Thư mục build khi dùng idf.py
+build/                
 sdkconfig.old
 sdkconfig.ci
 

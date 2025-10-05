@@ -112,70 +112,80 @@ const bool reconnect() {
   return true;
 }
 
-void setup() {
-  Serial.begin(SERIAL_DEBUG_BAUD);
-  pinMode(LED_PIN, OUTPUT);
-  delay(1000);
-  InitWiFi();
+void WifiConnectionCheckTask(void *pv){
+  TickType_t lastWakeTime = xTaskGetTickCount();
+  const TickType_t period = pdMS_TO_TICKS(1000 * 60);
 
-  // Wire.begin(SDA_PIN, SCL_PIN);
-  dht11.begin();
-  
+  while (1) {
+    if (!reconnect()) {
+      Serial.println("WiFi not connected");
+    }
+    vTaskDelayUntil(&lastWakeTime, period);
+  }
 }
 
-void loop() {
-  delay(10);
+void CoreIoTConnectionCheckTask(void *pv){
+  TickType_t lastWakeTime = xTaskGetTickCount();
+  const TickType_t period = pdMS_TO_TICKS(1000 * 50);
 
-  if (!reconnect()) {
-    return;
+  while (1) {
+    if (!tb.connected()) {
+      Serial.print("Connecting to: ");
+      Serial.print(THINGSBOARD_SERVER);
+      Serial.print(" with token ");
+      Serial.println(TOKEN);
+      if (!tb.connect(THINGSBOARD_SERVER, TOKEN, THINGSBOARD_PORT)) {
+        Serial.println("Failed to connect");
+        return;
+      }
+
+      tb.sendAttributeData("macAddress", WiFi.macAddress().c_str());
+
+      Serial.println("Subscribing for RPC...");
+      if (!tb.RPC_Subscribe(callbacks.cbegin(), callbacks.cend())) {
+        Serial.println("Failed to subscribe for RPC");
+        return;
+      }
+
+      if (!tb.Shared_Attributes_Subscribe(attributes_callback)) {
+        Serial.println("Failed to subscribe for shared attribute updates");
+        return;
+      }
+
+      Serial.println("Subscribe done");
+
+      if (!tb.Shared_Attributes_Request(attribute_shared_request_callback)) {
+        Serial.println("Failed to request for shared attributes");
+        return;
+      }
+    }
+    vTaskDelayUntil(&lastWakeTime, period);
   }
+}
 
-  if (!tb.connected()) {
-    Serial.print("Connecting to: ");
-    Serial.print(THINGSBOARD_SERVER);
-    Serial.print(" with token ");
-    Serial.println(TOKEN);
-    if (!tb.connect(THINGSBOARD_SERVER, TOKEN, THINGSBOARD_PORT)) {
-      Serial.println("Failed to connect");
-      return;
+void SendAttributeDataTask(void *pv){
+  TickType_t lastWakeTime = xTaskGetTickCount();
+  const TickType_t period = pdMS_TO_TICKS(1000 * 30);
+
+  while (1) {
+    if (attributesChanged) {
+      attributesChanged = false;
+      tb.sendAttributeData(LED_STATE_ATTR, digitalRead(LED_PIN));
     }
-
-    tb.sendAttributeData("macAddress", WiFi.macAddress().c_str());
-
-    Serial.println("Subscribing for RPC...");
-    if (!tb.RPC_Subscribe(callbacks.cbegin(), callbacks.cend())) {
-      Serial.println("Failed to subscribe for RPC");
-      return;
-    }
-
-    if (!tb.Shared_Attributes_Subscribe(attributes_callback)) {
-      Serial.println("Failed to subscribe for shared attribute updates");
-      return;
-    }
-
-    Serial.println("Subscribe done");
-
-    if (!tb.Shared_Attributes_Request(attribute_shared_request_callback)) {
-      Serial.println("Failed to request for shared attributes");
-      return;
-    }
+    tb.sendAttributeData("rssi", WiFi.RSSI());
+    tb.sendAttributeData("channel", WiFi.channel());
+    tb.sendAttributeData("bssid", WiFi.BSSIDstr().c_str());
+    tb.sendAttributeData("localIp", WiFi.localIP().toString().c_str());
+    tb.sendAttributeData("ssid", WiFi.SSID().c_str());
+    vTaskDelayUntil(&lastWakeTime, period);
   }
+}
 
-  if (attributesChanged) {
-    attributesChanged = false;
-    tb.sendAttributeData(LED_STATE_ATTR, digitalRead(LED_PIN));
-  }
+void SendTelemetryDataTask(void *pv){
+  TickType_t lastWakeTime = xTaskGetTickCount();
+  const TickType_t period = pdMS_TO_TICKS(1000 * 10);
 
-  // if (ledMode == 1 && millis() - previousStateChange > blinkingInterval) {
-  //   previousStateChange = millis();
-  //   digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-  //   Serial.print("LED state changed to: ");
-  //   Serial.println(!digitalRead(LED_PIN));
-  // }
-
-  if (millis() - previousDataSend > telemetrySendInterval) {
-    previousDataSend = millis();
-
+  while (1) {
     dht11.read();
 
     float temperature = dht11.readTemperature();
@@ -193,13 +203,36 @@ void loop() {
       tb.sendTelemetryData("temperature", temperature);
       tb.sendTelemetryData("humidity", humidity);
     }
-
-    tb.sendAttributeData("rssi", WiFi.RSSI());
-    tb.sendAttributeData("channel", WiFi.channel());
-    tb.sendAttributeData("bssid", WiFi.BSSIDstr().c_str());
-    tb.sendAttributeData("localIp", WiFi.localIP().toString().c_str());
-    tb.sendAttributeData("ssid", WiFi.SSID().c_str());
+    vTaskDelayUntil(&lastWakeTime, period);
   }
+}
 
-  tb.loop();
+void KeepTBConnectionTask(void *pv){
+  TickType_t lastWakeTime = xTaskGetTickCount();
+  const TickType_t period = pdMS_TO_TICKS(50);
+
+  while (1) {
+    tb.loop();
+    vTaskDelayUntil(&lastWakeTime, period);
+  }
+}
+
+void setup() {
+  Serial.begin(SERIAL_DEBUG_BAUD);
+  pinMode(LED_PIN, OUTPUT);
+  delay(1000);
+  InitWiFi();
+
+  // Wire.begin(SDA_PIN, SCL_PIN);
+  dht11.begin();
+  
+  xTaskCreate(WifiConnectionCheckTask, "WiFiConnectionCheck", 2048, NULL, 3, NULL);
+  xTaskCreate(CoreIoTConnectionCheckTask, "CoreIoTConnectionCheck", 2048, NULL, 4, NULL);
+  xTaskCreate(SendTelemetryDataTask, "SendTelemetryData", 2048, NULL, 2, NULL);
+  xTaskCreate(SendAttributeDataTask, "SendAttributeData", 2048, NULL, 1, NULL);
+  xTaskCreate(KeepTBConnectionTask, "KeepTBConnection", 2048, NULL, 5, NULL);
+}
+
+void loop() {
+
 }

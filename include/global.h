@@ -7,8 +7,8 @@
 #include "freertos/semphr.h"
 
 
-extern float temperature;
-extern float humidity;
+extern float glob_temperature;
+extern float glob_humidity;
 
 extern String ssid;
 extern String password;
@@ -16,4 +16,9 @@ extern String wifi_ssid;
 extern String wifi_password;
 extern boolean isWifiConnected;
 extern SemaphoreHandle_t xBinarySemaphoreInternet;
+extern SemaphoreHandle_t mutexForTempData;
+extern SemaphoreHandle_t mutexForHumiData;
+extern const char* ERR_TEMP_TIMEOUT;
+extern const char* ERR_HUMI_TIMEOUT;
+extern const char* ERR_LIGHT_TIMEOUT;
 #endif

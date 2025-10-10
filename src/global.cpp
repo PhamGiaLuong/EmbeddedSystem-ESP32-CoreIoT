@@ -1,7 +1,7 @@
 #include "global.h"
 
-float temperature = 0;
-float humidity = 0;
+float glob_temperature = 0;
+float glob_humidity = 0;
 
 String ssid = "ESP32-YOUR NETWORK HERE!!!";
 String password = "12345678";
@@ -9,3 +9,8 @@ String wifi_ssid = "abcde";
 String wifi_password = "123456789";
 boolean isWifiConnected = false;
 SemaphoreHandle_t xBinarySemaphoreInternet = xSemaphoreCreateBinary();
+SemaphoreHandle_t mutexForTempData = xSemaphoreCreateMutex();
+SemaphoreHandle_t mutexForHumiData = xSemaphoreCreateMutex();
+const char* ERR_TEMP_TIMEOUT  = "ERROR: Timeout waiting for Temperature resource!";
+const char* ERR_HUMI_TIMEOUT  = "ERROR: Timeout waiting for Humidity resource!";
+const char* ERR_LIGHT_TIMEOUT = "ERROR: Timeout waiting for Light resource!";

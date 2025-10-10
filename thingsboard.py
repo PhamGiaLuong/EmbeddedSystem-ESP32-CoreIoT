@@ -14,12 +14,16 @@ def subscribed(client, userdata, mid, granted_qos):
 
 def recv_message(client, userdata, message):
     print("Received: ", message.payload.decode("utf-8"))
-    temp_data = {'value': True}
+    LED_data = {'value': True}
+    FAN_data = {'value': True}
     try:
         jsonobj = json.loads(message.payload)
-        if jsonobj['method'] == "setValue":
-            temp_data['value'] = jsonobj['params']
-            client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
+        if jsonobj['method'] == "setLEDValue":
+            LED_data['value'] = jsonobj['params']
+            client.publish('v1/devices/me/attributes', json.dumps(LED_data), 1)
+        elif jsonobj['method'] == "setFANValue":
+            FAN_data['value'] = jsonobj['params']
+            client.publish('v1/devices/me/attributes', json.dumps(FAN_data), 1)
     except:
         pass
 

@@ -273,18 +273,19 @@ void setupServer() {
   server.on("/toggle", HTTP_GET, handleToggle);
   server.on("/sensors", HTTP_GET, handleSensors);
   server.on("/settings", HTTP_GET, handleSettings);
-  server.on("/connect", HTTP_GET, handleConnect);
+  server.on("/connect", HTTP_POST, handleConnect); 
   server.begin();
 }
 
 void connectToWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-  Serial.print("Connecting to: ");
+  Serial.print("Connecting to: '");
   Serial.print(wifi_ssid.c_str());
 
-  Serial.print(" Password: ");
+  Serial.print("' Password: '");
   Serial.print(wifi_password.c_str());
+  Serial.println("'");
 }
 
 // ========== Main task ==========

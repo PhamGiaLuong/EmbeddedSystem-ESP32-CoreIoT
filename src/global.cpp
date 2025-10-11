@@ -173,13 +173,24 @@ const char SETTINGS_PAGE[] PROGMEM = R"rawliteral(
       const password = document.getElementById("password").value;
       statusText.textContent = "Connecting...";
 
+      // Chuẩn bị dữ liệu để gửi trong body
+      const formData = new URLSearchParams();
+      formData.append('ssid', ssid);
+      formData.append('pass', password);
+
       try {
-        const res = await fetch(`/connect?ssid=${encodeURIComponent(ssid)}&password=${encodeURIComponent(password)}`);
+        const res = await fetch('/connect', {
+          method: 'POST', //
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData
+        });
+
         if (res.ok) {
-          statusText.textContent = "Connected successfully!";
-          statusText.style.color = "green";
+          statusText.textContent = "Credentials sent. Awaiting connection status...";
         } else {
-          statusText.textContent = "Connection failed.";
+          statusText.textContent = "Failed to send credentials.";
           statusText.style.color = "red";
         }
       } catch (err) {

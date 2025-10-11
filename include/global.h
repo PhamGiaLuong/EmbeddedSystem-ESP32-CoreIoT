@@ -21,4 +21,7 @@ extern SemaphoreHandle_t mutexForHumiData;
 extern const char* ERR_TEMP_TIMEOUT;
 extern const char* ERR_HUMI_TIMEOUT;
 extern const char* ERR_LIGHT_TIMEOUT;
+
+extern const char MAIN_PAGE[] PROGMEM;
+extern const char SETTINGS_PAGE[] PROGMEM;
 #endif

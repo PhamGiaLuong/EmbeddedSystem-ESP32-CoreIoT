@@ -1,21 +1,22 @@
 #include "temp_humi_monitor.h"
 
-DHT dht(DHTPIN, DHTTYPE);
+// DHT dht(DHTPIN, DHTTYPE);
+DHT20 dht;
 LiquidCrystal_I2C lcd(33,16,2);
 
 void temp_humi_monitor(void *pvParameters){
 	TickType_t lastWakeTime = xTaskGetTickCount();
   	const TickType_t period = pdMS_TO_TICKS(1000 * 10);
 
-    // Wire.begin(11, 12);
+    Wire.begin(11, 12);
     // Serial.begin(115200);
     dht.begin();
 
     while (1){
         dht.read();
         // Reading data
-        float temperature = dht.readTemperature();
-        float humidity = dht.readHumidity();
+        float temperature = dht.getTemperature();
+        float humidity = dht.getHumidity();
 
         // Check if any reads failed and exit early
         if(isnan(temperature) || isnan(humidity)) {

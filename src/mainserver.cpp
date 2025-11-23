@@ -214,11 +214,11 @@ void handleToggle() {
   int led = server.arg("led").toInt();
   if (led == 1) {
     led1_state = !led1_state;
-    Serial.println("YOUR CODE TO CONTROL LED1");
+    Serial.printf("LED 1: %s\n", led1_state ? "ON" : "OFF");
   }
   else if (led == 2){
     led2_state = !led2_state;
-    Serial.println("YOUR CODE TO CONTROL LED2");
+    Serial.printf("LED 2: %s\n", led2_state ? "ON" : "OFF");
   }
   server.send(200, "application/json",
     "{\"led1\":\"" + String(led1_state ? "ON":"OFF") +

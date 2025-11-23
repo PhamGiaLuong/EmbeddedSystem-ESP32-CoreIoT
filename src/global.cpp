@@ -3,7 +3,7 @@
 float glob_temperature = 0;
 float glob_humidity = 0;
 
-String ssid = "ESP32-LIAM";
+String ssid = "ESP32-Lab3";
 String password = "12345678";
 String wifi_ssid = "Bon Bon";
 String wifi_password = "03102017";

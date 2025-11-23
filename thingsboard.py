@@ -1,4 +1,5 @@
 print("Hello Core IOT")
+import random
 import paho.mqtt.client as mqttclient
 import time
 import json
@@ -40,16 +41,11 @@ client = mqttclient.Client("IoT_Device")
 client.username_pw_set(ACCESS_USERNAME, ACCESS_TOKEN)
 
 client.on_connect = connected
-client.connect(BROKER_ADDRESS, 1883)
-client.loop_start()
-
 client.on_subscribe = subscribed
 client.on_message = recv_message
 
-temp = 30
-humi = 50
-light_intesity = 100
-counter = 0
+client.connect(BROKER_ADDRESS, PORT)
+client.loop_start()
 
 #HCMUT
 # long = 106.65789107082472
@@ -59,17 +55,24 @@ counter = 0
 # long = 106.80633605864662
 # lat = 10.880018410410052
 
-#MH
+#My House
 long = 106.829815
 lat = 10.848297
 
 
 while True:
-    collect_data = {'temperature': temp, 'humidity': humi,
-                    'light':light_intesity,
-                    'long': long, 'lat': lat}
-    temp += 1
-    humi += 1
-    light_intesity += 1
-    client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
+    temp = random.uniform(25, 30)    
+    humi = random.uniform(60, 90)  
+    light_intesity = random.uniform(500, 800)
+    
+    collect_data = {
+        'temperature': round(temp, 2),
+        'humidity': round(humi, 2),
+        'light': round(light_intesity, 2),
+        'long': long,
+        'lat': lat
+    }
+
+    client.publish("v1/devices/me/telemetry", json.dumps(collect_data), 1)
+    print("Sent:", collect_data)
     time.sleep(5)

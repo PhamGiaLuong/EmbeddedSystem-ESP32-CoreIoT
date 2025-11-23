@@ -2,7 +2,6 @@
 #define ___MAIN_SERVER__
 
 #include <Arduino.h>
-#include <WiFi.h>
 #include <WebServer.h>
 #include "global.h"
 
